@@ -3,6 +3,14 @@ import { api } from '../services/api';
 
 const AuthContext = createContext(null);
 
+const DEMO_CREDENTIALS = {
+  donor: { email: 'marco@grandhyatt.org', password: 'donor123' },
+  recipient: { email: 'contact@gracehope.org', password: 'shelter123' },
+  delivery: { email: 'vikram@shareaplate.org', password: 'rider123' },
+  delivery_agent: { email: 'vikram@shareaplate.org', password: 'rider123' },
+  admin: { email: 'ops@shareaplate.org', password: 'admin123' },
+};
+
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -29,8 +37,9 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password, extraData = {}) => {
     const res = await api.login(email, password);
     const updatedUser = {
-      ...res.user,
       ...extraData,
+      ...res.user,
+      role: res.user?.role || extraData.role || 'donor',
     };
     localStorage.setItem('sap_current_user_v1', JSON.stringify(updatedUser));
     setCurrentUser(updatedUser);
@@ -57,10 +66,34 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(allUsers[0]);
   };
 
-  // Switch role seamlessly (ideal for hackathon presentation and testing all 4 roles)
-  const switchRole = (targetRole) => {
+  // Switch role seamlessly with live backend synchronization and mock fallback
+  const switchRole = async (targetRole) => {
+    const normalizedTarget = targetRole === 'delivery_agent' ? 'delivery' : targetRole;
+    const creds = DEMO_CREDENTIALS[normalizedTarget];
+
+    if (creds) {
+      try {
+        const res = await api.login(creds.email, creds.password);
+        if (res?.user) {
+          const userWithRole = {
+            ...res.user,
+            role: res.user.role || normalizedTarget,
+          };
+          localStorage.setItem('sap_current_user_v1', JSON.stringify(userWithRole));
+          setCurrentUser(userWithRole);
+          return userWithRole;
+        }
+      } catch (err) {
+        console.warn('Backend switchRole authentication fallback:', err);
+      }
+    }
+
     const allUsers = api.getAllUsers();
-    const match = allUsers.find((u) => u.role === targetRole);
+    const match = allUsers.find(
+      (u) =>
+        u.role === targetRole ||
+        (normalizedTarget === 'delivery' && (u.role === 'delivery' || u.role === 'delivery_agent'))
+    );
     if (match) {
       const switched = api.switchUser(match.id);
       setCurrentUser(switched);
@@ -69,12 +102,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   const allUsers = api.getAllUsers();
+  const rawRole = currentUser?.role || 'donor';
+  const role = rawRole === 'delivery_agent' ? 'delivery' : rawRole;
 
   return (
     <AuthContext.Provider
       value={{
         currentUser,
-        role: currentUser?.role || 'donor',
+        role,
         loading,
         login,
         loginWithGoogle,

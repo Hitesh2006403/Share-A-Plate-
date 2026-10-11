@@ -94,7 +94,7 @@ export const Navbar = ({
             <div className="bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-center gap-1 sm:gap-1.5 w-full">
               {ROLES.map((r) => {
                 const Icon = r.icon;
-                const isActive = role === r.id;
+                const isActive = role === r.id || (r.id === 'delivery' && role === 'delivery_agent');
                 return (
                   <button
                     key={r.id}
@@ -196,7 +196,7 @@ export const Navbar = ({
               />
             )}
             <span className="font-extrabold text-slate-900">
-              {currentUser?.organizationName || currentUser?.name}
+              {currentUser?.organizationName || currentUser?.organization?.name || currentUser?.name || 'Verified Member'}
             </span>
             {currentUser?.googleVerified && (
               <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1">
@@ -213,7 +213,7 @@ export const Navbar = ({
             <span className="hidden md:inline text-[11px] text-slate-400 italic">
               {role === 'donor' && 'Posting surplus batches & monitoring live expiry countdowns'}
               {role === 'recipient' && 'Requesting food & smart match recommendations'}
-              {role === 'delivery' && 'Active pickup milestones & QR handover checks'}
+              {(role === 'delivery' || role === 'delivery_agent') && 'Active pickup milestones & QR handover checks'}
               {role === 'admin' && 'Central platform impact & live donation monitoring'}
             </span>
             <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-full text-[11px] font-bold flex items-center gap-1">

@@ -174,6 +174,7 @@ export const authController = {
       return res.status(200).json({
         success: true,
         message: `Authenticated as ${user.name} (${user.role})`,
+        token: sessionToken,
         user: sanitizeUser(user),
       });
     } catch (err) {
@@ -221,6 +222,7 @@ export const authController = {
       return res.status(200).json({
         success: true,
         message: 'Login successful.',
+        token: sessionToken,
         user: sanitizeUser(user),
       });
     } catch (err) {
@@ -273,6 +275,7 @@ export const authController = {
       return res.status(201).json({
         success: true,
         message: 'Account registered successfully.',
+        token: sessionToken,
         user: sanitizeUser(newUser),
       });
     } catch (err) {
@@ -285,11 +288,15 @@ export const authController = {
   },
 
   // --------------------------------------------------------------------------
-  // GET CURRENT SESSION USER (from HttpOnly Cookie)
+  // GET CURRENT SESSION USER (from HttpOnly Cookie or Authorization header)
   // --------------------------------------------------------------------------
   getMe: async (req, res) => {
     try {
-      const token = req.cookies.sap_session_token;
+      let token = req.cookies?.sap_session_token;
+      if (!token && req.headers?.authorization) {
+        token = req.headers.authorization.replace(/^Bearer\s+/i, '');
+      }
+
       if (!token) {
         return res.status(401).json({
           success: false,

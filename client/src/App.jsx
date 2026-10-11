@@ -74,7 +74,7 @@ function DashboardRouter() {
               />
             )}
 
-            {role === 'delivery' && <DeliveryDashboard />}
+            {(role === 'delivery' || role === 'delivery_agent') && <DeliveryDashboard />}
 
             {role === 'admin' && <AdminDashboard />}
           </>

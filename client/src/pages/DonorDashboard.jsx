@@ -5,7 +5,6 @@ import { DonationCard } from '../components/donor/DonationCard';
 import { CreateDonationModal } from '../components/donor/CreateDonationModal';
 import { ReopenModal } from '../components/donor/ReopenModal';
 import { QrCodeModal } from '../components/common/QrCodeModal';
-import { ReviewsSection } from '../components/common/ReviewsSection';
 import SplitPlanModal from '../features/matching/SplitPlanModal';
 import { SpatialImpactHUD, SpatialCard } from '../features/spatial';
 import {
@@ -329,10 +328,6 @@ export const DonorDashboard = ({ isCreateOpen, setIsCreateOpen }) => {
         </div>
       )}
 
-      {/* REVIEWS & COMMUNITY FEEDBACK SECTION */}
-      <div className="pt-4">
-        <ReviewsSection />
-      </div>
 
       {/* Modals */}
       <CreateDonationModal

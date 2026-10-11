@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
+import { useAuth } from './AuthContext';
 import { useNotification } from './NotificationContext';
 import confetti from 'canvas-confetti';
 
 const DonationContext = createContext(null);
 
 export const DonationProvider = ({ children }) => {
+  const { currentUser, role } = useAuth();
   const [donations, setDonations] = useState([]);
   const [requirements, setRequirements] = useState([]);
   const [deliveryTasks, setDeliveryTasks] = useState([]);
@@ -39,6 +41,9 @@ export const DonationProvider = ({ children }) => {
 
   useEffect(() => {
     loadData();
+  }, [currentUser?.id, role, loadData]);
+
+  useEffect(() => {
 
     // Real-time synchronization via Server-Sent Events
     const unsubscribe = api.subscribeHandoverStream((event) => {

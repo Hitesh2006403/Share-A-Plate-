@@ -250,22 +250,23 @@ export const LoginPage = ({ onLoginSuccess, onContinueAsGuest }) => {
 
     if (!email.trim()) newErrors.email = 'Email address is required.';
     if (!password) newErrors.password = 'Password is required.';
-    if (!roleCustomField.trim()) {
-      newErrors.customField = `${activeRole.customField.label} is required for verification.`;
-    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      addToast('Please complete all required verification fields.', 'warning');
+      addToast('Please enter both your email and password.', 'warning');
       return;
     }
 
     try {
       setSubmitting(true);
-      await login(email.trim(), password, {
-        [activeRole.customField.name]: roleCustomField.trim(),
-        role: activeRole.role,
-      });
+      const extraData = {
+        role: activeRole.role === 'delivery' ? 'delivery_agent' : activeRole.role,
+      };
+      if (roleCustomField.trim()) {
+        extraData[activeRole.customField.name] = roleCustomField.trim();
+      }
+
+      await login(email.trim(), password, extraData);
 
       addToast(
         `Welcome back! Signed in to ${activeRole.title} successfully.`,
@@ -651,15 +652,15 @@ export const LoginPage = ({ onLoginSuccess, onContinueAsGuest }) => {
                  ------------------------------------------------------------- */}
               {formMode === 'login' && (
                 <form onSubmit={handleRoleLogin} className="space-y-4">
-                  {/* ROLE SPECIFIC REQUIRED FIELD */}
+                  {/* ROLE SPECIFIC OPTIONAL VERIFICATION FIELD */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-bold text-zinc-200 uppercase tracking-wide">
                         {activeRole.customField.label}{' '}
-                        <span className="text-rose-500 font-black">*</span>
+                        <span className="text-zinc-500 text-[10px] font-normal lowercase">(optional)</span>
                       </label>
-                      <span className="text-[10px] font-semibold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">
-                        Required
+                      <span className="text-[10px] font-semibold text-zinc-400 bg-white/5 px-2 py-0.5 rounded-full border border-white/10">
+                        Optional
                       </span>
                     </div>
                     <div className="relative">
@@ -667,29 +668,14 @@ export const LoginPage = ({ onLoginSuccess, onContinueAsGuest }) => {
                       <input
                         type="text"
                         value={roleCustomField}
-                        onChange={(e) => {
-                          setRoleCustomField(e.target.value);
-                          if (errors.customField) {
-                            setErrors({ ...errors, customField: null });
-                          }
-                        }}
+                        onChange={(e) => setRoleCustomField(e.target.value)}
                         placeholder={activeRole.customField.placeholder}
-                        className={`w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-white/5 border text-xs sm:text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none font-mono text-white placeholder:text-zinc-500 ${
-                          errors.customField
-                            ? 'border-rose-500 bg-rose-500/10'
-                            : 'border-white/10 hover:border-white/20'
-                        }`}
+                        className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 text-xs sm:text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none font-mono text-white placeholder:text-zinc-500"
                       />
                     </div>
-                    {errors.customField ? (
-                      <p className="text-[11px] text-rose-400 mt-1 font-semibold">
-                        {errors.customField}
-                      </p>
-                    ) : (
-                      <p className="text-[11px] text-zinc-400 mt-1">
-                        {activeRole.customField.helper}
-                      </p>
-                    )}
+                    <p className="text-[11px] text-zinc-400 mt-1">
+                      {activeRole.customField.helper}
+                    </p>
                   </div>
 
                   {/* EMAIL ADDRESS */}

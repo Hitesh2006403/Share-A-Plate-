@@ -242,6 +242,7 @@ export const api = {
     const user = mockUsers.find((u) => u.id === userId);
     if (user) {
       localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
+      localStorage.setItem('sap_jwt_token', 'mock-jwt-token-' + user.id);
     }
     return user;
   },
